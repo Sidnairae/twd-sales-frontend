@@ -1,16 +1,12 @@
 import streamlit as st
 import os
-from supabase import create_client
+import requests
 
-def _secret(key: str) -> str:
+def _base() -> str:
     try:
-        val = str(st.secrets[key])
+        return "".join(str(st.secrets["API_BASE_URL"]).split())
     except Exception:
-        val = os.environ[key]
-    return "".join(val.split())
-
-def get_supabase():
-    return create_client(_secret("SUPABASE_URL"), _secret("SUPABASE_ANON_KEY"))
+        return os.environ.get("API_BASE_URL", "http://localhost:8000")
 
 def is_logged_in() -> bool:
     return bool(st.session_state.get("access_token"))
@@ -23,11 +19,18 @@ def get_user() -> dict | None:
 
 def login(email: str, password: str) -> tuple[bool, str]:
     try:
-        sb = get_supabase()
-        result = sb.auth.sign_in_with_password({"email": email, "password": password})
-        st.session_state["access_token"] = result.session.access_token
-        st.session_state["user"] = {"id": result.user.id, "email": result.user.email}
+        r = requests.post(f"{_base()}/api/login", json={"email": email, "password": password}, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        st.session_state["access_token"] = data["access_token"]
+        st.session_state["user"] = data["user"]
         return True, ""
+    except requests.HTTPError as e:
+        try:
+            detail = e.response.json().get("detail", str(e))
+        except Exception:
+            detail = str(e)
+        return False, detail
     except Exception as e:
         return False, str(e)
 

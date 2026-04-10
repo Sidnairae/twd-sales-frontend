@@ -5,7 +5,7 @@ from lib.session import get_token
 
 def _base() -> str:
     try:
-        return st.secrets["API_BASE_URL"]
+        return "".join(str(st.secrets["API_BASE_URL"]).split())
     except Exception:
         return os.environ.get("API_BASE_URL", "http://localhost:8000")
 
