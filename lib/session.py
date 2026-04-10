@@ -4,9 +4,10 @@ from supabase import create_client
 
 def _secret(key: str) -> str:
     try:
-        return st.secrets[key]
+        val = str(st.secrets[key])
     except Exception:
-        return os.environ[key]
+        val = os.environ[key]
+    return "".join(val.split())
 
 def get_supabase():
     return create_client(_secret("SUPABASE_URL"), _secret("SUPABASE_ANON_KEY"))
