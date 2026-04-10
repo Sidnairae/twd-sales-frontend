@@ -4,7 +4,10 @@ import streamlit as st
 from lib.session import get_token
 
 def _base() -> str:
-    return os.environ.get("API_BASE_URL", "http://localhost:8000")
+    try:
+        return st.secrets["API_BASE_URL"]
+    except Exception:
+        return os.environ.get("API_BASE_URL", "http://localhost:8000")
 
 def _headers() -> dict:
     return {"Authorization": f"Bearer {get_token()}"}

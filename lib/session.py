@@ -2,8 +2,14 @@ import streamlit as st
 import os
 from supabase import create_client
 
+def _secret(key: str) -> str:
+    try:
+        return st.secrets[key]
+    except Exception:
+        return os.environ[key]
+
 def get_supabase():
-    return create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_ANON_KEY"])
+    return create_client(_secret("SUPABASE_URL"), _secret("SUPABASE_ANON_KEY"))
 
 def is_logged_in() -> bool:
     return bool(st.session_state.get("access_token"))
